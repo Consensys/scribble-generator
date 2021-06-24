@@ -5,7 +5,7 @@ Scribble generator is an add-on utility for the Scribble specification language.
 ## Which types of testcases are supported
 
 - [x] Echidna
-- [ ] Dapptools fuzz tests
+- [x] Dapptools fuzz tests
 - [ ] ~Hypothesis fuzz tests~
 
 > Unfortunately Hypothesis testcases are written Python which makes it impossible to universify just through Scribble annotations.
