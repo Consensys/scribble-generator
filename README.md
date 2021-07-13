@@ -13,7 +13,7 @@ Scribble generator is an add-on utility for the Scribble specification language.
 ## Installation
 Run the following command to install scribble generator on your machine
 ```
-npm install -g eth_scribble_generator
+npm install -g scribble-generator
 ```
 
 ## Usage
