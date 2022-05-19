@@ -1,38 +1,79 @@
 #!/usr/bin/env node
 
-const yargs = require("yargs");
+const yargs = require('yargs');
 const fs = require('fs');
 const path = require('path');
 
-const {generateAnnotationsForFileContents} = require("../src");
+const {generateAnnotationsForFileContents} = require('../src');
+const {logger} = require('../src/logger')
 
-const options = yargs
- .usage("Usage: scribble-generate")
- .argv;
+const cmdOptions = yargs
+    .usage("Usage: scribble-generate")
+    .option('t', {
+      'alias': 'targets',
+      'array': true,
+      'demandOption': true,
+      'description': 'targets to automatically annotate',
+      'requiresArg': true,
+    })
+    .argv;
 
- console.log("Generating Scribble annotations for fuzz tests in current directory.")
-
-
-fs.readdir(process.cwd(), (err, files) => {
-    if (err) {
-        console.log("Unable to generate annotations for this directory.")
+function readDirectory(dir){
+  let all_files = [];
+  try {
+    const files = fs.readdirSync(dir);
+    for (let file of files){
+      const file_path = path.resolve(dir, file);
+      if (file.endsWith('.sol')){
+        all_files.push(file_path);
+        continue;
+      }
+      try {
+        const stat = fs.statSync(file_path);
+        if (stat.isDirectory()){
+          all_files = all_files.concat(readDirectory(file_path));
+        }
+      } catch (e) {
+        logger.warn(`${e}. Skipping target`);
+      }
     }
-    solidityFiles = files
-        .filter(file => file.endsWith(".sol"));
+  } catch {
+    logger.warn(`Unable to generate annotations for the directory ${targetPath}. Skipping target`)
+  }
+  return all_files;
+}
 
-    console.log(`Instrumenting ${solidityFiles.length} solidity file(s)`)
-
-    solidityFiles
-        .forEach((file) => {
-            console.log(`Generating annotations for: ${file}`);
-            generateAnnotationsForFile(file);
-        });
-})
+function run(options){
+  logger.info("Generating Scribble annotations for fuzz tests")
+  const targets = options["targets"]
+  for (let target of targets){
+    const targetPath = path.resolve(target)
+    try {
+      const stat = fs.statSync(targetPath);
+      let files = [];
+      if (stat.isDirectory()){
+        files = readDirectory(targetPath)
+        if (files.length === 0) {
+          continue;
+        }
+      } else {
+        files = [targetPath];
+      }
+      logger.info(`Instrumenting ${files.length} solidity file(s) for target "${targetPath}"`);
+      for (let file of files){
+        logger.debug(`Generating annotations for "${file}"`);
+        generateAnnotationsForFile(file);
+      }
+    } catch (e) {
+      logger.warn(`${e}. Skipping target`);
+    }
+  }
+}
 
 function generateAnnotationsForFile(filename) {
     var modifiedContents = "";
     var totalAnnotationsAdded = 0;
-    
+
     const data = fs.readFileSync(filename, 'utf8');
 
     // Perform initial parse
@@ -41,6 +82,8 @@ function generateAnnotationsForFile(filename) {
     totalAnnotationsAdded = result[1];
 
     if (totalAnnotationsAdded) {
+        let originalName = filename.split('.').slice(0, -1).join('.')
+        fs.copyFileSync(filename, `${originalName}.sol.sg_original`)
         console.log(`Writing annotations for ${filename}`)
         fs.writeFile(filename, modifiedContents, (err) => {
             if (err) {console.error(err);}
@@ -48,3 +91,5 @@ function generateAnnotationsForFile(filename) {
     }
     return totalAnnotationsAdded;
 }
+
+run(cmdOptions);
