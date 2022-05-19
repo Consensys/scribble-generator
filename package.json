@@ -1,23 +1,42 @@
 {
-  "name": "scribble-generator",
-  "version": "1.0.0",
-  "description": "Automatically generate scribble annotations for fuzz tests",
-  "license": "Apache 2.0",
-  "dependencies": {
-    "esm": "^3.2.25",
-    "tree-sitter": "^0.20.0",
-    "tree-sitter-solidity": "^1.1.0",
-    "winston": "^3.7.2",
-    "yargs": "^17.0.1"
-  },
-  "main": "src/index.js",
-  "bin": {
-    "scribble-generate": "bin/index.js"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "cli"
-  ]
+    "name": "scribble-generator",
+    "version": "1.0.0",
+    "description": "Automatically generate scribble annotations for fuzz tests",
+    "license": "Apache 2.0",
+    "dependencies": {
+        "esm": "^3.2.25",
+        "tree-sitter": "^0.20.0",
+        "tree-sitter-solidity": "^1.1.0",
+        "winston": "^3.7.2",
+        "yargs": "^17.0.1"
+    },
+    "main": "src/index.js",
+    "bin": {
+        "scribble-generate": "bin/index.js"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "cli"
+    ],
+    "devDependencies": {
+        "eslint": "^7.32.0 || ^8.2.0",
+        "eslint-config-airbnb-base": "^15.0.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-import": "^2.25.2",
+        "husky": ">=6",
+        "lint-staged": ">=10",
+        "prettier": "^2.6.2"
+    },
+    "scripts": {
+        "format": "npm run pretty && npm run lint",
+        "pretty": "prettier --write .",
+        "lint": "eslint . --fix",
+        "prepare": "husky install"
+    },
+    "lint-staged": {
+        "*.js": "eslint --cache --fix",
+        "*.lint": "prettier --write"
+    }
 }
